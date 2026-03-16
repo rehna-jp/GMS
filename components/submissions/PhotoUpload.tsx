@@ -1,13 +1,13 @@
 // components/submissions/PhotoUpload.tsx
 'use client'
 
-import { useCallback, useState, useEffect, useRef } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { Upload, X, AlertCircle, Loader2 } from 'lucide-react'
+import { useCallback, useState, useEffect } from 'react'
+import { Upload, X, AlertCircle, Loader2, Camera, WifiOff } from 'lucide-react'
 import { extractGPSFromPhoto, validatePhotoFile, formatFileSize, ExtractedGPS } from '@/lib/utils/exif'
-import { verifyGPSProximity, GPSVerificationResult } from '@/lib/utils/gps'
+import { calculateDistance, verifyGPSProximity, GPSVerificationResult } from '@/lib/utils/gps'
 import { GPSVerification } from './GPSVerification'
 import { createClient } from '@/lib/supabase/client'
+import { queuePhoto, fileToDataUrl } from '@/lib/utils/offline-queue'
 
 export interface UploadedPhoto {
   file: File
@@ -16,26 +16,49 @@ export interface UploadedPhoto {
   verificationResult: GPSVerificationResult | null
   uploading: boolean
   uploaded: boolean
+  queued: boolean // offline queue
   error: string | null
   filePath: string | null
 }
 
 interface PhotoUploadProps {
   projectGPS: { latitude: number; longitude: number }
+  projectId?: string
+  projectName?: string
+  submissionData?: {
+    milestoneId?: string
+    completionPercentage: number
+    notes: string
+  }
   onChange: (photos: UploadedPhoto[]) => void
   maxPhotos?: number
 }
 
-export function PhotoUpload({ projectGPS, onChange, maxPhotos = 10 }: PhotoUploadProps) {
+export function PhotoUpload({
+  projectGPS,
+  projectId,
+  projectName,
+  submissionData,
+  onChange,
+  maxPhotos = 10
+}: PhotoUploadProps) {
   const [photos, setPhotos] = useState<UploadedPhoto[]>([])
   const [processing, setProcessing] = useState(false)
+  const [isOnline, setIsOnline] = useState(true)
+  const [isDragOver, setIsDragOver] = useState(false)
 
-  // ── Notify parent whenever photos changes — never during render ──────
-  const onChangeRef = useRef(onChange)
-  useEffect(() => { onChangeRef.current = onChange }, [onChange])
-  useEffect(() => { onChangeRef.current(photos) }, [photos])
+  useEffect(() => {
+    setIsOnline(navigator.onLine)
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
-  // ── Process a single file: validate + extract EXIF ───────────────────
   const processFile = async (file: File): Promise<UploadedPhoto> => {
     const validation = validatePhotoFile(file)
     if (!validation.valid) {
@@ -46,6 +69,7 @@ export function PhotoUpload({ projectGPS, onChange, maxPhotos = 10 }: PhotoUploa
         verificationResult: null,
         uploading: false,
         uploaded: false,
+        queued: false,
         error: validation.error || 'Invalid file',
         filePath: null,
       }
@@ -68,147 +92,213 @@ export function PhotoUpload({ projectGPS, onChange, maxPhotos = 10 }: PhotoUploa
       verificationResult,
       uploading: false,
       uploaded: false,
+      queued: false,
       error: null,
       filePath: null,
     }
   }
 
-  // ── Upload photos to Supabase Storage ────────────────────────────────
-  const uploadToStorage = async (startIndex: number, count: number) => {
-    const supabase = createClient()
+  const uploadOrQueue = async (photo: UploadedPhoto, index: number) => {
+    if (!isOnline) {
+      // Save to offline queue
+      if (projectId && submissionData) {
+        try {
+          const dataUrl = await fileToDataUrl(photo.file)
+          await queuePhoto({
+            submissionData: {
+              projectId,
+              projectName: projectName ?? 'Unknown Project',
+              milestoneId: submissionData.milestoneId,
+              completionPercentage: submissionData.completionPercentage,
+              notes: submissionData.notes,
+            },
+            photo: {
+              name: photo.file.name,
+              type: photo.file.type,
+              size: photo.file.size,
+              dataUrl,
+              gpsLatitude: photo.gps.latitude,
+              gpsLongitude: photo.gps.longitude,
+              distanceFromSite: photo.verificationResult?.distance ?? null,
+              takenAt: photo.gps.takenAt?.toISOString() ?? null,
+            },
+          })
 
-    // Use getSession() — avoids the network fetch that causes "Failed to fetch"
-    const { data: { session } } = await supabase.auth.getSession()
-    const userId = session?.user?.id
-    if (!userId) {
-      setPhotos(prev => {
-        const updated = [...prev]
-        for (let i = startIndex; i < startIndex + count; i++) {
-          if (updated[i] && !updated[i].error) {
-            updated[i] = { ...updated[i], uploading: false, error: 'Not authenticated. Please refresh.' }
-          }
+          setPhotos(prev => {
+            const updated = [...prev]
+            updated[index] = { ...updated[index], queued: true }
+            onChange(updated)
+            return updated
+          })
+        } catch (err) {
+          console.error('Failed to queue photo:', err)
         }
-        return updated
-      })
+      }
       return
     }
 
-    for (let i = startIndex; i < startIndex + count; i++) {
-      setPhotos(prev => {
-        const photo = prev[i]
-        if (!photo || photo.error) return prev
+    // Online — upload directly
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
-        const ext = photo.file.name.split('.').pop() ?? 'jpg'
-        const filePath = `${userId}/${Date.now()}-${i}.${ext}`
+    const ext = photo.file.name.split('.').pop()
+    const filePath = `${user.id}/${Date.now()}-${index}.${ext}`
 
-        // Fire upload async — update state when it resolves
-        supabase.storage
-          .from('submission-photos')
-          .upload(filePath, photo.file, { cacheControl: '3600', upsert: false })
-          .then(({ error }) => {
-            setPhotos(current => {
-              const next = [...current]
-              if (!next[i]) return current
-              next[i] = error
-                ? { ...next[i], uploading: false, error: `Upload failed: ${error.message}` }
-                : { ...next[i], uploading: false, uploaded: true, filePath }
-              return next
-            })
-          })
+    setPhotos(prev => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], uploading: true }
+      onChange(updated)
+      return updated
+    })
 
-        // Mark as uploading immediately
-        const updated = [...prev]
-        updated[i] = { ...updated[i], uploading: true }
-        return updated
-      })
-    }
+    const { error } = await supabase.storage
+      .from('submission-photos')
+      .upload(filePath, photo.file, { cacheControl: '3600', upsert: false })
+
+    setPhotos(prev => {
+      const updated = [...prev]
+      if (error) {
+        updated[index] = { ...updated[index], uploading: false, error: `Upload failed: ${error.message}` }
+      } else {
+        updated[index] = { ...updated[index], uploading: false, uploaded: true, filePath }
+      }
+      onChange(updated)
+      return updated
+    })
   }
 
-  // ── Drop handler ─────────────────────────────────────────────────────
-  const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
+  const handleFiles = useCallback(
+    async (files: FileList | File[]) => {
       if (photos.length >= maxPhotos) return
       const remaining = maxPhotos - photos.length
-      const toProcess = acceptedFiles.slice(0, remaining)
+      const toProcess = Array.from(files).slice(0, remaining)
 
       setProcessing(true)
       const processed = await Promise.all(toProcess.map(processFile))
-      const startIndex = photos.length
 
-      setPhotos(prev => [...prev, ...processed])
+      setPhotos(prev => {
+        const updated = [...prev, ...processed]
+        onChange(updated)
+        return updated
+      })
       setProcessing(false)
 
-      if (processed.some(p => !p.error)) {
-        uploadToStorage(startIndex, processed.length)
-      }
+      processed.forEach((photo, i) => {
+        if (!photo.error) uploadOrQueue(photo, photos.length + i)
+      })
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [photos.length, maxPhotos, projectGPS]
+    [photos, maxPhotos, projectGPS, isOnline]
   )
 
   const removePhoto = (index: number) => {
     URL.revokeObjectURL(photos[index].preview)
-    setPhotos(prev => prev.filter((_, i) => i !== index))
+    setPhotos(prev => {
+      const updated = prev.filter((_, i) => i !== index)
+      onChange(updated)
+      return updated
+    })
   }
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { 'image/jpeg': [], 'image/png': [], 'image/heic': [], 'image/heif': [] },
-    disabled: photos.length >= maxPhotos || processing,
-    multiple: true,
-  })
-
   const verifiedCount = photos.filter(p => p.verificationResult?.status === 'verified').length
-  const flaggedCount  = photos.filter(p => p.verificationResult?.status === 'flagged').length
-  const noGPSCount    = photos.filter(p => !p.gps.hasGPS && !p.error).length
+  const flaggedCount = photos.filter(p => p.verificationResult?.status === 'flagged').length
+  const noGPSCount = photos.filter(p => !p.gps.hasGPS && !p.error).length
+  const queuedCount = photos.filter(p => p.queued).length
 
   return (
     <div className="space-y-4">
-      {/* Drop zone */}
-      {photos.length < maxPhotos && (
-        <div
-          {...getRootProps()}
-          className={`
-            relative flex cursor-pointer flex-col items-center justify-center
-            rounded-xl border-2 border-dashed p-8 text-center transition-all duration-200
-            ${isDragActive
-              ? 'border-blue-400 bg-blue-50 scale-[1.01]'
-              : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'}
-            ${processing ? 'opacity-60 cursor-not-allowed' : ''}
-          `}
-        >
-          <input {...getInputProps()} />
-          {processing ? (
-            <Loader2 className="mb-3 h-10 w-10 animate-spin text-blue-500" />
-          ) : (
-            <Upload className={`mb-3 h-10 w-10 ${isDragActive ? 'text-blue-500' : 'text-slate-400'}`} />
-          )}
-          <p className="text-sm font-medium text-slate-700">
-            {processing ? 'Extracting GPS data…' : isDragActive ? 'Drop photos here' : 'Drag & drop photos, or click to browse'}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            JPEG, PNG, HEIC · Max 5MB each · Up to {maxPhotos} photos
-          </p>
-          {photos.length > 0 && (
-            <p className="mt-1 text-xs text-slate-400">{photos.length}/{maxPhotos} added</p>
-          )}
+      {/* Offline banner */}
+      {!isOnline && (
+        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <WifiOff className="h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-semibold">You're offline</p>
+            <p className="text-xs text-amber-700">
+              Photos will be saved to your device and uploaded automatically when network returns.
+            </p>
+          </div>
         </div>
       )}
 
-      {/* GPS summary bar */}
+      {/* Camera capture button — primary action on mobile */}
+      {photos.length < maxPhotos && (
+        <div className="space-y-2">
+          {/* Camera button — opens rear camera directly on mobile */}
+          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95">
+            <Camera className="h-5 w-5" />
+            {processing ? 'Processing…' : 'Take Photo'}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/heic"
+              capture="environment"
+              className="hidden"
+              onChange={e => e.target.files && handleFiles(e.target.files)}
+              disabled={processing}
+            />
+          </label>
+
+          {/* Gallery / drag drop — secondary option */}
+          <label
+            className={`
+              flex cursor-pointer flex-col items-center justify-center
+              rounded-xl border-2 border-dashed p-5 text-center transition-all
+              ${isDragOver
+                ? 'border-blue-400 bg-blue-50'
+                : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
+              }
+            `}
+            onDragOver={e => { e.preventDefault(); setIsDragOver(true) }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={e => {
+              e.preventDefault()
+              setIsDragOver(false)
+              handleFiles(e.dataTransfer.files)
+            }}
+          >
+            <Upload className="mb-2 h-6 w-6 text-slate-400" />
+            <p className="text-sm text-slate-600">
+              Or upload from gallery / drag & drop
+            </p>
+            <p className="mt-0.5 text-xs text-slate-400">
+              JPEG, PNG, HEIC · Max 5MB · Up to {maxPhotos} photos
+            </p>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/heic"
+              multiple
+              className="hidden"
+              onChange={e => e.target.files && handleFiles(e.target.files)}
+              disabled={processing}
+            />
+          </label>
+        </div>
+      )}
+
+      {/* Summary chips */}
       {photos.length > 0 && (
         <div className="flex flex-wrap gap-2 text-xs">
           <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-600">
             📸 {photos.length} photo{photos.length !== 1 ? 's' : ''}
           </span>
           {verifiedCount > 0 && (
-            <span className="rounded-full bg-green-100 px-2.5 py-1 font-medium text-green-700">✅ {verifiedCount} verified</span>
+            <span className="rounded-full bg-green-100 px-2.5 py-1 font-medium text-green-700">
+              ✅ {verifiedCount} verified
+            </span>
           )}
           {flaggedCount > 0 && (
-            <span className="rounded-full bg-red-100 px-2.5 py-1 font-medium text-red-700">🚩 {flaggedCount} flagged</span>
+            <span className="rounded-full bg-red-100 px-2.5 py-1 font-medium text-red-700">
+              🚩 {flaggedCount} flagged
+            </span>
           )}
           {noGPSCount > 0 && (
-            <span className="rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-700">⚠️ {noGPSCount} no GPS</span>
+            <span className="rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-700">
+              ⚠️ {noGPSCount} no GPS
+            </span>
+          )}
+          {queuedCount > 0 && (
+            <span className="rounded-full bg-blue-100 px-2.5 py-1 font-medium text-blue-700">
+              📶 {queuedCount} queued for upload
+            </span>
           )}
         </div>
       )}
@@ -217,10 +307,16 @@ export function PhotoUpload({ projectGPS, onChange, maxPhotos = 10 }: PhotoUploa
       {photos.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {photos.map((photo, index) => (
-            <div key={index} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div
+              key={index}
+              className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+            >
               <div className="relative aspect-video w-full bg-slate-100">
-                <img src={photo.preview} alt={photo.file.name} className="h-full w-full object-cover" />
-
+                <img
+                  src={photo.preview}
+                  alt={photo.file.name}
+                  className="h-full w-full object-cover"
+                />
                 <button
                   onClick={() => removePhoto(index)}
                   className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
@@ -232,13 +328,21 @@ export function PhotoUpload({ projectGPS, onChange, maxPhotos = 10 }: PhotoUploa
                 {photo.uploading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                     <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-700">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading…
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Uploading…
                     </div>
                   </div>
                 )}
+
                 {photo.uploaded && (
                   <div className="absolute bottom-2 right-2 rounded-full bg-green-500 px-2 py-0.5 text-[10px] font-bold text-white">
                     ✓ SAVED
+                  </div>
+                )}
+
+                {photo.queued && (
+                  <div className="absolute bottom-2 right-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                    📶 QUEUED
                   </div>
                 )}
               </div>
@@ -248,7 +352,9 @@ export function PhotoUpload({ projectGPS, onChange, maxPhotos = 10 }: PhotoUploa
                   <p className="truncate text-xs font-medium text-slate-700" title={photo.file.name}>
                     {photo.file.name}
                   </p>
-                  <span className="ml-2 shrink-0 text-xs text-slate-400">{formatFileSize(photo.file.size)}</span>
+                  <span className="ml-2 shrink-0 text-xs text-slate-400">
+                    {formatFileSize(photo.file.size)}
+                  </span>
                 </div>
 
                 {photo.error && (
@@ -263,12 +369,13 @@ export function PhotoUpload({ projectGPS, onChange, maxPhotos = 10 }: PhotoUploa
                     result={photo.verificationResult}
                     photoGPS={{ latitude: photo.gps.latitude, longitude: photo.gps.longitude }}
                     projectGPS={projectGPS}
-                    photoName={photo.file.name}
                   />
                 )}
 
                 {photo.gps.takenAt && (
-                  <p className="text-[11px] text-slate-400">📅 Taken: {photo.gps.takenAt.toLocaleString()}</p>
+                  <p className="text-[11px] text-slate-400">
+                    📅 Taken: {photo.gps.takenAt.toLocaleString()}
+                  </p>
                 )}
               </div>
             </div>

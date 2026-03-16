@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
 import Navbar from '@/components/layout/Navbar'
 import Sidebar from '@/components/layout/Sidebar'
+import { OfflineUploadManager } from '@/components/submissions/OfflineUploadManager'
+
 
 export default async function DashboardLayout({
   children,
@@ -23,6 +25,7 @@ export default async function DashboardLayout({
         <main className="flex-1 p-6 lg:ml-64">
           {children}
         </main>
+        <OfflineUploadManager /> 
       </div>
     </div>
   )

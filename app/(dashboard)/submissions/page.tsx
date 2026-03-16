@@ -6,11 +6,11 @@ import Link from 'next/link'
 import { Plus, Inbox } from 'lucide-react'
 
 interface PageProps {
-  searchParams: Promise<{ status?: string; submitted?: string }>
+  searchParams: Promise<{ status?: string; submitted?: string; queued?: string }>
 }
 
 export default async function SubmissionsPage({ searchParams }: PageProps) {
-  const { status, submitted } = await searchParams
+  const { status, submitted , queued} = await searchParams
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -40,6 +40,12 @@ export default async function SubmissionsPage({ searchParams }: PageProps) {
           ✅ Submission received! An official will review it shortly.
         </div>
       )}
+      {/* ADD THIS RIGHT HERE */}
+{queued === 'true' && (
+  <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+    📶 Photos saved offline. They will upload automatically when network returns.
+  </div>
+)}
 
       {/* Header */}
       <div className="mb-6 flex items-start justify-between gap-4">

@@ -65,6 +65,10 @@ export default function NewSubmissionPage() {
     !submitting
 
   const handleSubmit = async () => {
+    if (!navigator.onLine) {
+    router.push('/submissions?queued=true')
+    return
+  }
     if (!canSubmit || !selectedProject) return
     setSubmitting(true)
     setError('')
@@ -235,6 +239,13 @@ export default function NewSubmissionPage() {
                 latitude: selectedProject.gps_latitude,
                 longitude: selectedProject.gps_longitude,
               }}
+              projectId={selectedProjectId}           // ← ADD
+  projectName={selectedProject.name}       // ← ADD
+  submissionData={{
+    milestoneId: selectedMilestoneId || undefined,
+    completionPercentage,
+    notes,
+  }}   
               onChange={setPhotos}
               maxPhotos={10}
             />
