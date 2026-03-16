@@ -13,7 +13,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Bell, LogOut, Settings, User , Key} from 'lucide-react'
+import { LogOut, Settings, User , Key} from 'lucide-react'
+import { NotificationBell } from '@/components/ui/notification-bell'
+
 
 export default function Navbar({ user }: { user: any }) {
   const initials = user?.profile?.full_name
@@ -48,11 +50,7 @@ export default function Navbar({ user }: { user: any }) {
   </Link>
 )}
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full" />
-          </Button>
-
+<NotificationBell />
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
