@@ -20,15 +20,19 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget)
     
     try {
-      const result = await login(formData)
-      if (result?.error) {
-        setError(result.error)
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred')
-    } finally {
-      setLoading(false)
-    }
+  const result = await login(formData)
+  if (result?.error) {
+    setError(result.error)
+  }
+} catch (err: any) {
+  // Next.js redirect() throws internally — don't treat it as an error
+  if (err?.message?.includes('NEXT_REDIRECT') || err?.digest?.includes('NEXT_REDIRECT')) {
+    return // navigation is happening, do nothing
+  }
+  setError(err.message || 'An error occurred')
+} finally {
+  setLoading(false)
+}
   }
 
   return (

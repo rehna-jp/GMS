@@ -81,7 +81,7 @@ export async function submitTip(input: {
 }) {
   const supabase = await createClient()
 
-  const { error } = await supabase
+  const { data: tip, error } = await supabase
     .from('citizen_tips')
     .insert({
       project_id: input.projectId,
@@ -90,8 +90,46 @@ export async function submitTip(input: {
       status: 'new',
       submitted_at: new Date().toISOString(),
     })
+    .select('*, projects(name, primary_official_id)')
+    .single()
 
   if (error) return { error: error.message }
+
+  // Notify the project's primary official
+  const projectName = (tip as any).projects?.name ?? 'a project'
+  const officialId = (tip as any).projects?.primary_official_id
+
+  if (officialId) {
+    await supabase.from('notifications').insert({
+      user_id: officialId,
+      type: 'warning',
+      title: 'New Citizen Tip',
+      message: `A citizen has submitted a tip about "${projectName}". Review it in the Tips section. 💬`,
+      is_read: false,
+      project_id: input.projectId,
+    })
+  }
+
+  // Also notify all admins
+  const { data: admins } = await supabase
+    .from('users')
+    .select('id')
+    .eq('role', 'admin')
+    .eq('status', 'active')
+
+  if (admins && admins.length > 0) {
+    await supabase.from('notifications').insert(
+      admins.map(admin => ({
+        user_id: admin.id,
+        type: 'warning',
+        title: 'New Citizen Tip',
+        message: `A citizen has submitted a tip about "${projectName}". 💬`,
+        is_read: false,
+        project_id: input.projectId,
+      }))
+    )
+  }
+
   revalidatePath('/tips')
   return { success: true }
 }

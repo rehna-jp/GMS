@@ -23,6 +23,7 @@ const menuItems = {
     { icon: FolderKanban,    label: 'Projects',        href: '/projects' },
     { icon: Users,           label: 'User Management', href: '/users' },
     { icon: Camera,          label: 'Submissions',     href: '/submissions' },
+      { icon: MessageSquare,   label: 'Citizen Tips',    href: '/tips' },
     { icon: BarChart3,       label: 'Reports',         href: '/reports' },
   ],
   official: [
