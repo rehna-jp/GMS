@@ -176,3 +176,86 @@ export async function createMilestone(projectId: string, formData: FormData) {
     return { error: error.message }
   }
 }
+
+
+export async function updateProjectCompletionFromSubmission(submissionId: string) {
+  const supabase = await createClient()
+
+  // Get submission details
+  const { data: submission } = await supabase
+    .from('submissions')
+    .select('project_id, milestone_id, completion_percentage')
+    .eq('id', submissionId)
+    .single()
+
+  if (!submission) return
+
+  // Update milestone if linked
+  // Update milestone if linked
+if (submission.milestone_id) {
+  // Get ALL submissions for this milestone
+  const { data: milestoneSubmissions } = await supabase
+    .from('submissions')
+    .select('status, completion_percentage')
+    .eq('milestone_id', submission.milestone_id)
+
+  if (milestoneSubmissions && milestoneSubmissions.length > 0) {
+    const approvedSubs = milestoneSubmissions.filter(s => s.status === 'approved')
+    const hasFlagged = milestoneSubmissions.some(s => s.status === 'flagged')
+    const hasActive = milestoneSubmissions.some(s =>
+      ['pending', 'under_review'].includes(s.status)
+    )
+
+    // Highest approved completion %
+    const maxApprovedCompletion = approvedSubs.length > 0
+      ? Math.max(...approvedSubs.map(s => s.completion_percentage))
+      : 0
+
+    // Determine status
+    let milestoneStatus = 'pending'
+    if (maxApprovedCompletion >= 100) {
+      milestoneStatus = 'approved'
+    } else if (approvedSubs.length > 0) {
+      milestoneStatus = 'in_progress'
+    } else if (hasFlagged && !hasActive) {
+      milestoneStatus = 'flagged'
+    } else if (hasActive) {
+      milestoneStatus = 'in_progress'
+    }
+
+    await supabase
+      .from('milestones')
+      .update({
+        status: milestoneStatus,
+        completion_percentage: maxApprovedCompletion,
+      })
+      .eq('id', submission.milestone_id)
+  }
+}
+
+  // Recalculate project completion from all approved submissions
+  const { data: approvedSubmissions } = await supabase
+    .from('submissions')
+    .select('completion_percentage')
+    .eq('project_id', submission.project_id)
+    .eq('status', 'approved')
+    .order('submitted_at', { ascending: false })
+
+  if (!approvedSubmissions || approvedSubmissions.length === 0) return
+
+  // Use the highest approved completion percentage
+  const maxCompletion = Math.max(...approvedSubmissions.map(s => s.completion_percentage))
+
+  await supabase
+    .from('projects')
+    .update({
+      completion_percentage: maxCompletion,
+      status: maxCompletion >= 100 ? 'completed' : 'active',
+    })
+    .eq('id', submission.project_id)
+
+    // ADD THESE — without them the page won't refresh
+revalidatePath('/projects')
+revalidatePath(`/projects/${submission.project_id}`)
+revalidatePath('/dashboard')
+}

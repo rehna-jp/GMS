@@ -6,17 +6,19 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  MapPin, Calendar, DollarSign, User, Edit, 
+import {
+  MapPin, Calendar, DollarSign, User, Edit,
   TrendingUp, CheckCircle, Clock
 } from 'lucide-react'
 import MilestonesList from '@/components/projects/MilestonesList'
 import AddMilestoneButton from '@/components/projects/AddMilestoneButton'
 
-export default async function ProjectDetailPage({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
+export const dynamic = 'force-dynamic' // Always fetch fresh data
+
+export default async function ProjectDetailPage({
+  params
+}: {
+  params: Promise<{ id: string }>
 }) {
   const { id } = await params
   const user = await getCurrentUser()
@@ -34,21 +36,40 @@ export default async function ProjectDetailPage({
     .eq('id', id)
     .single()
 
-  if (error || !project) {
-    notFound()
-  }
+  if (error || !project) notFound()
 
-  // Fetch submissions count
+  // Fetch submissions count (total)
   const { count: submissionsCount } = await supabase
     .from('submissions')
     .select('*', { count: 'exact', head: true })
     .eq('project_id', id)
 
+  // Fetch submission counts per milestone
+  const { data: milestoneSubmissions } = await supabase
+    .from('submissions')
+    .select('milestone_id')
+    .eq('project_id', id)
+    .not('milestone_id', 'is', null)
+
+  // Count submissions per milestone_id
+  const submissionCountMap: Record<string, number> = {}
+  milestoneSubmissions?.forEach(s => {
+    if (s.milestone_id) {
+      submissionCountMap[s.milestone_id] = (submissionCountMap[s.milestone_id] ?? 0) + 1
+    }
+  })
+
+  // Attach submission_count to each milestone
+  const milestonesWithCounts = (project.milestones ?? []).map((m: any) => ({
+    ...m,
+    submission_count: submissionCountMap[m.id] ?? 0,
+  }))
+
   const canEdit = ['admin', 'official'].includes(user?.profile?.role || '')
 
   return (
     <div className="space-y-6">
-      {/* Header with Edit Button */}
+      {/* Header */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -68,8 +89,6 @@ export default async function ProjectDetailPage({
               </div>
               <p className="text-gray-600">{project.project_number}</p>
             </div>
-            
-            {/* Edit Button */}
             {canEdit && (
               <Link href={`/projects/${project.id}/edit`}>
                 <Button size="lg">
@@ -111,10 +130,10 @@ export default async function ProjectDetailPage({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              GH₵ {(project.budget_total / 1000000).toFixed(2)}M
+              GH₵ {Number(project.budget_total ?? 0).toLocaleString()}
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Spent: GH₵ {(project.budget_spent / 1000000).toFixed(2)}M
+              Spent: GH₵ {Number(project.budget_spent ?? 0).toLocaleString()}
             </p>
           </CardContent>
         </Card>
@@ -173,7 +192,7 @@ export default async function ProjectDetailPage({
               </div>
             </CardHeader>
             <CardContent>
-              <MilestonesList milestones={project.milestones || []} />
+              <MilestonesList milestones={milestonesWithCounts} />
             </CardContent>
           </Card>
         </div>
@@ -198,6 +217,17 @@ export default async function ProjectDetailPage({
                   {project.gps_latitude}, {project.gps_longitude}
                 </p>
               </div>
+              <div className="pl-7">
+                <a
+                  href={`https://www.google.com/maps?q=${project.gps_latitude},${project.gps_longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                >
+                  <MapPin className="h-3 w-3" />
+                  View on Google Maps
+                </a>
+              </div>
             </CardContent>
           </Card>
 
@@ -212,10 +242,8 @@ export default async function ProjectDetailPage({
                 <div>
                   <p className="text-sm text-gray-600">Start Date</p>
                   <p className="font-medium">
-                    {new Date(project.start_date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
+                    {new Date(project.start_date).toLocaleDateString('en-GH', {
+                      year: 'numeric', month: 'long', day: 'numeric'
                     })}
                   </p>
                 </div>
@@ -225,10 +253,8 @@ export default async function ProjectDetailPage({
                 <div>
                   <p className="text-sm text-gray-600">End Date</p>
                   <p className="font-medium">
-                    {new Date(project.end_date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
+                    {new Date(project.end_date).toLocaleDateString('en-GH', {
+                      year: 'numeric', month: 'long', day: 'numeric'
                     })}
                   </p>
                 </div>
@@ -249,7 +275,6 @@ export default async function ProjectDetailPage({
                   <p className="font-medium">{project.official?.full_name || 'Not assigned'}</p>
                 </div>
               </div>
-              
               {project.contractor ? (
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Contractor</p>

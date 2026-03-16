@@ -124,6 +124,8 @@ if (input.photos.length > 0) {
       uploaded_at: new Date().toISOString(),
     }))
 
+   
+
     const { error: photoError } = await supabase
       .from('submission_photos')
       .insert(photoRecords)
@@ -133,6 +135,55 @@ if (input.photos.length > 0) {
       // Don't fail — submission is already created
     }
   }
+
+   // After inserting submission photos, add this:
+if (input.milestoneId) {
+  await supabase
+    .from('milestones')
+    .update({ status: 'in_progress' })
+    .eq('id', input.milestoneId)
+    .eq('status', 'pending') // only update if still pending
+}
+
+// Notify the project's primary official about new submission
+const { data: projectData } = await supabase
+  .from('projects')
+  .select('name, primary_official_id')
+  .eq('id', input.projectId)
+  .single()
+
+if (projectData?.primary_official_id) {
+  await supabase.from('notifications').insert({
+    user_id: projectData.primary_official_id,
+    type: 'info',
+    title: 'New Submission',
+    message: `A new progress submission has been made for "${projectData.name}". Ready for review. 📋`,
+    is_read: false,
+    submission_id: submission.id,
+    project_id: input.projectId,
+  })
+}
+
+// Also notify all admins
+const { data: admins } = await supabase
+  .from('users')
+  .select('id')
+  .eq('role', 'admin')
+  .eq('status', 'active')
+
+if (admins && admins.length > 0) {
+  await supabase.from('notifications').insert(
+    admins.map(admin => ({
+      user_id: admin.id,
+      type: 'info',
+      title: 'New Submission',
+      message: `New progress submission for "${projectData?.name ?? 'a project'}". Ready for review. 📋`,
+      is_read: false,
+      submission_id: submission.id,
+      project_id: input.projectId,
+    }))
+  )
+}
 
   revalidatePath('/submissions')
   revalidatePath(`/projects/${input.projectId}`)

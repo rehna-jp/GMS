@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createNotification } from './notifications'
+import { updateProjectCompletionFromSubmission } from './projects'
 
 export type ReviewAction = 'approve' | 'flag' | 'request_changes' | 'under_review'
 
@@ -74,6 +75,11 @@ export async function reviewSubmission(input: ReviewInput) {
     .single()
 
   if (updateError) return { error: updateError.message }
+
+  // Auto-update project completion when approved
+if (input.action === 'approve') {
+  await updateProjectCompletionFromSubmission(input.submissionId)
+}
 
   // Audit log — new_value is TEXT so stringify the object
   await supabase.from('audit_logs').insert({
