@@ -92,13 +92,6 @@ export default function LoginPage() {
               {loading ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
-          
-          <div className="mt-4 text-center text-sm text-gray-600">
-            <p>Demo Accounts:</p>
-            <p className="text-xs mt-1">Admin: admin@gov.gh / admin123</p>
-            <p className="text-xs">Official: official@gov.gh / official123</p>
-            <p className="text-xs">Contractor: contractor@example.com / contractor123</p>
-          </div>
         </CardContent>
       </Card>
     </div>

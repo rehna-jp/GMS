@@ -12,28 +12,29 @@ import {
   BarChart3,
   Users,
   MessageSquare,
+  Camera,
 } from 'lucide-react'
 
 const menuItems = {
   admin: [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-    { icon: FolderKanban, label: 'Projects', href: '/projects' },
-    { icon: Users, label: 'User Management', href: '/users' },  
-    { icon: FileCheck, label: 'Submissions', href: '/submissions' },
-    { icon: BarChart3, label: 'Reports', href: '/reports' },
+    { icon: LayoutDashboard, label: 'Dashboard',        href: '/dashboard' },
+    { icon: FolderKanban,    label: 'Projects',         href: '/projects' },
+    { icon: Users,           label: 'User Management',  href: '/users' },
+    { icon: Camera,          label: 'Submissions',      href: '/submissions' },
+    { icon: BarChart3,       label: 'Reports',          href: '/reports' },
   ],
   official: [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-    { icon: FolderKanban, label: 'Projects', href: '/projects' },
-    { icon: FileCheck, label: 'Review Submissions', href: '/submissions' },
-    { icon: MessageSquare, label: 'Citizen Tips', href: '/tips' },
-    { icon: BarChart3, label: 'Reports', href: '/reports' },
+    { icon: LayoutDashboard, label: 'Dashboard',          href: '/dashboard' },
+    { icon: FolderKanban,    label: 'Projects',           href: '/projects' },
+    { icon: Camera,          label: 'Review Submissions', href: '/submissions' },
+    { icon: MessageSquare,   label: 'Citizen Tips',       href: '/tips' },
+    { icon: BarChart3,       label: 'Reports',            href: '/reports' },
   ],
   contractor: [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-    { icon: FolderKanban, label: 'My Projects', href: '/projects' },
-    { icon: Upload, label: 'Upload Progress', href: '/submissions/new' },
-    { icon: FileCheck, label: 'Submissions', href: '/submissions' },
+    { icon: LayoutDashboard, label: 'Dashboard',       href: '/dashboard' },
+    { icon: FolderKanban,    label: 'My Projects',     href: '/projects' },
+    { icon: Camera,          label: 'Submissions',     href: '/submissions' },
+    { icon: Upload,          label: 'New Submission',  href: '/submissions/new' },
   ],
 }
 
