@@ -46,6 +46,10 @@ export default function AddMilestoneButton({ projectId }: { projectId: string })
         }, 1500)
       }
     } catch (err: any) {
+      // Next.js redirect() throws internally — don't treat it as an error
+      if (err?.message?.includes('NEXT_REDIRECT') || err?.digest?.includes('NEXT_REDIRECT')) {
+        return // navigation is happening, do nothing
+      }
       setError(err.message || 'An error occurred')
     } finally {
       setLoading(false)
