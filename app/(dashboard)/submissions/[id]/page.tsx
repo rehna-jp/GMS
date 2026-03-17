@@ -19,18 +19,18 @@ interface PageProps {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; icon: React.ElementType; classes: string }> = {
-  pending:      { label: 'Pending',      icon: Clock,        classes: 'bg-blue-100 text-blue-800 border-blue-200' },
-  under_review: { label: 'Under Review', icon: Eye,          classes: 'bg-amber-100 text-amber-800 border-amber-200' },
-  approved:     { label: 'Approved',     icon: CheckCircle2, classes: 'bg-green-100 text-green-800 border-green-200' },
-  flagged:      { label: 'Flagged',      icon: XCircle,      classes: 'bg-red-100 text-red-800 border-red-200' },
+  pending: { label: 'Pending', icon: Clock, classes: 'bg-blue-100 text-blue-800 border-blue-200' },
+  under_review: { label: 'Under Review', icon: Eye, classes: 'bg-amber-100 text-amber-800 border-amber-200' },
+  approved: { label: 'Approved', icon: CheckCircle2, classes: 'bg-green-100 text-green-800 border-green-200' },
+  flagged: { label: 'Flagged', icon: XCircle, classes: 'bg-red-100 text-red-800 border-red-200' },
 }
 
 const AUDIT_ACTION_LABELS: Record<string, { label: string; color: string }> = {
-  submission_approve:         { label: 'Approved',            color: 'text-green-700 bg-green-50 border-green-200' },
-  submission_flag:            { label: 'Flagged',             color: 'text-red-700 bg-red-50 border-red-200' },
-  submission_request_changes: { label: 'Changes Requested',   color: 'text-amber-700 bg-amber-50 border-amber-200' },
-  submission_under_review:    { label: 'Marked Under Review', color: 'text-blue-700 bg-blue-50 border-blue-200' },
-  submission_resubmitted:     { label: 'Resubmitted',         color: 'text-purple-700 bg-purple-50 border-purple-200' },
+  submission_approve: { label: 'Approved', color: 'text-green-700 bg-green-50 border-green-200' },
+  submission_flag: { label: 'Flagged', color: 'text-red-700 bg-red-50 border-red-200' },
+  submission_request_changes: { label: 'Changes Requested', color: 'text-amber-700 bg-amber-50 border-amber-200' },
+  submission_under_review: { label: 'Marked Under Review', color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  submission_resubmitted: { label: 'Resubmitted', color: 'text-purple-700 bg-purple-50 border-purple-200' },
 }
 
 export default async function SubmissionDetailPage({ params }: PageProps) {
@@ -64,8 +64,8 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
   )[0]
   const gpsStatus: 'verified' | 'review' | 'flagged' | null = closestPhoto
     ? closestPhoto.distance_from_site < 100 ? 'verified'
-    : closestPhoto.distance_from_site <= 500 ? 'review'
-    : 'flagged'
+      : closestPhoto.distance_from_site <= 500 ? 'review'
+        : 'flagged'
     : null
 
   // Get latest review comment for resubmit panel
@@ -258,7 +258,7 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
                   <div
-                    className="h-full rounded-full bg-blue-500"
+                    className="h-full rounded-full bg-primary"
                     style={{ width: `${submission.completion_percentage}%` }}
                   />
                 </div>

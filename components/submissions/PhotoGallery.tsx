@@ -88,7 +88,7 @@ export function PhotoGallery({ photos }: PhotoGalleryProps) {
             <button
               key={photo.id}
               onClick={() => openLightbox(index)}
-              className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm transition-all hover:shadow-md hover:scale-[1.02]"
+              className="group relative aspect-square overflow-hidden rounded-xl border border-slate-100 bg-slate-50 shadow-sm transition-all hover:shadow-md hover:scale-[1.02] hover:ring-2 hover:ring-primary/20 hover:border-primary/30"
             >
               {url ? (
                 <img

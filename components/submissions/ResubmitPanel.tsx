@@ -62,7 +62,7 @@ export function ResubmitPanel({
       setDone(true)
       onResubmitted?.()
       // Force page refresh to show new status
-       window.location.reload()
+      window.location.reload()
     })
   }
 
@@ -82,17 +82,15 @@ export function ResubmitPanel({
   const isFlagged = currentStatus === 'flagged'
 
   return (
-    <div className={`rounded-xl border-2 overflow-hidden ${
-      isFlagged ? 'border-red-200' : 'border-amber-200'
-    }`}>
+    <div className={`rounded-xl border-2 overflow-hidden ${isFlagged ? 'border-red-200' : 'border-amber-200'
+      }`}>
       {/* Header — always visible */}
       <button
         onClick={() => setExpanded(prev => !prev)}
-        className={`w-full flex items-start justify-between gap-3 p-4 text-left transition-colors ${
-          isFlagged
-            ? 'bg-red-50 hover:bg-red-100'
-            : 'bg-amber-50 hover:bg-amber-100'
-        }`}
+        className={`w-full flex items-start justify-between gap-3 p-4 text-left transition-colors ${isFlagged
+          ? 'bg-red-50 hover:bg-red-100/80'
+          : 'bg-amber-50 hover:bg-amber-100/80'
+          }`}
       >
         <div className="flex items-start gap-3">
           {isFlagged
@@ -108,14 +106,14 @@ export function ResubmitPanel({
                 "{reviewComment}"
               </p>
             ) : (
-              <p className={`mt-0.5 text-xs ${isFlagged ? 'text-red-600' : 'text-amber-600'}`}>
+              <p className={`mt-0.5 text-xs ${isFlagged ? 'text-red-600/80' : 'text-amber-600/80'}`}>
                 No comment provided by reviewer.
               </p>
             )}
           </div>
         </div>
-        <div className={`shrink-0 mt-0.5 ${isFlagged ? 'text-red-500' : 'text-amber-500'}`}>
-          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        <div className={`shrink-0 mt-0.5 transition-transform duration-200 ${expanded ? 'rotate-180 text-slate-500' : 'text-slate-400'}`}>
+          <ChevronDown className="h-5 w-5" />
         </div>
       </button>
 
@@ -159,7 +157,7 @@ export function ResubmitPanel({
           <button
             onClick={handleResubmit}
             disabled={!canSubmit}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isPending ? (
               <>

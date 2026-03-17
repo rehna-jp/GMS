@@ -17,20 +17,20 @@ interface PageProps {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  new:          { label: 'New',          color: 'bg-blue-100 text-blue-800 border-blue-200',   icon: Clock },
+  new: { label: 'New', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: Clock },
   under_review: { label: 'Under Review', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: AlertTriangle },
-  actioned:     { label: 'Actioned',     color: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle2 },
-  dismissed:    { label: 'Dismissed',    color: 'bg-slate-100 text-slate-600 border-slate-200', icon: XCircle },
+  actioned: { label: 'Actioned', color: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle2 },
+  dismissed: { label: 'Dismissed', color: 'bg-slate-100 text-slate-600 border-slate-200', icon: XCircle },
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  corruption:       '💰 Corruption',
-  poor_quality:     '🔨 Poor Quality',
-  abandonment:      '🚫 Abandonment',
-  safety_hazard:    '⚠️ Safety Hazard',
-  wrong_location:   '📍 Wrong Location',
-  overpricing:      '💸 Overpricing',
-  other:            '📝 Other',
+  corruption: '💰 Corruption',
+  poor_quality: '🔨 Poor Quality',
+  abandonment: '🚫 Abandonment',
+  safety_hazard: '⚠️ Safety Hazard',
+  wrong_location: '📍 Wrong Location',
+  overpricing: '💸 Overpricing',
+  other: '📝 Other',
 }
 
 export default async function TipsPage({ searchParams }: PageProps) {
@@ -52,30 +52,36 @@ export default async function TipsPage({ searchParams }: PageProps) {
   ])
 
   const STATUS_TABS = [
-    { key: 'all',          label: 'All',          count: stats.total },
-    { key: 'new',          label: 'New',          count: stats.new },
+    { key: 'all', label: 'All', count: stats.total },
+    { key: 'new', label: 'New', count: stats.new },
     { key: 'under_review', label: 'Under Review', count: stats.underReview },
-    { key: 'actioned',     label: 'Actioned',     count: stats.actioned },
-    { key: 'dismissed',    label: 'Dismissed',    count: stats.dismissed },
+    { key: 'actioned', label: 'Actioned', count: stats.actioned },
+    { key: 'dismissed', label: 'Dismissed', count: stats.dismissed },
   ]
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Citizen Tips</h1>
-        <p className="mt-1 text-slate-500">
-          Anonymous tips submitted by the public about project irregularities
-        </p>
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-blue-800 px-6 py-8 text-white shadow-lg mb-8">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+        />
+        <div className="relative">
+          <p className="text-sm font-medium text-blue-200 uppercase tracking-wider mb-1">Public Reports</p>
+          <h1 className="text-2xl font-bold">Citizen Tips</h1>
+          <p className="mt-1 text-blue-200 text-sm">
+            Anonymous tips submitted by the public about project irregularities
+          </p>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: 'Total Tips',    value: stats.total,       color: 'text-slate-600',  bg: 'bg-slate-50' },
-          { label: 'New',           value: stats.new,         color: 'text-blue-600',   bg: 'bg-blue-50' },
-          { label: 'Under Review',  value: stats.underReview, color: 'text-amber-600',  bg: 'bg-amber-50' },
-          { label: 'Actioned',      value: stats.actioned,    color: 'text-green-600',  bg: 'bg-green-50' },
+          { label: 'Total Tips', value: stats.total, color: 'text-slate-600', bg: 'bg-slate-50' },
+          { label: 'New', value: stats.new, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'Under Review', value: stats.underReview, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: 'Actioned', value: stats.actioned, color: 'text-green-600', bg: 'bg-green-50' },
         ].map(stat => (
           <div key={stat.label} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm text-center">
             <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
@@ -99,9 +105,8 @@ export default async function TipsPage({ searchParams }: PageProps) {
             >
               {tab.label}
               {tab.count > 0 && (
-                <span className={`rounded-full px-1.5 py-0.5 text-xs ${
-                  active ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500'
-                }`}>
+                <span className={`rounded-full px-1.5 py-0.5 text-xs ${active ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500'
+                  }`}>
                   {tab.count}
                 </span>
               )}

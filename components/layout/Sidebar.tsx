@@ -19,25 +19,25 @@ import {
 
 const menuItems = {
   admin: [
-    { icon: LayoutDashboard, label: 'Dashboard',       href: '/dashboard' },
-    { icon: FolderKanban,    label: 'Projects',        href: '/projects' },
-    { icon: Users,           label: 'User Management', href: '/users' },
-    { icon: Camera,          label: 'Submissions',     href: '/submissions' },
-      { icon: MessageSquare,   label: 'Citizen Tips',    href: '/tips' },
-    { icon: BarChart3,       label: 'Reports',         href: '/reports' },
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+    { icon: FolderKanban, label: 'Projects', href: '/projects' },
+    { icon: Users, label: 'User Management', href: '/users' },
+    { icon: Camera, label: 'Submissions', href: '/submissions' },
+    { icon: MessageSquare, label: 'Citizen Tips', href: '/tips' },
+    { icon: BarChart3, label: 'Reports', href: '/reports' },
   ],
   official: [
-    { icon: LayoutDashboard, label: 'Dashboard',          href: '/dashboard' },
-    { icon: FolderKanban,    label: 'Projects',           href: '/projects' },
-    { icon: Camera,          label: 'Review Submissions', href: '/submissions' },
-    { icon: MessageSquare,   label: 'Citizen Tips',       href: '/tips' },
-    { icon: BarChart3,       label: 'Reports',            href: '/reports' },
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+    { icon: FolderKanban, label: 'Projects', href: '/projects' },
+    { icon: Camera, label: 'Review Submissions', href: '/submissions' },
+    { icon: MessageSquare, label: 'Citizen Tips', href: '/tips' },
+    { icon: BarChart3, label: 'Reports', href: '/reports' },
   ],
   contractor: [
-    { icon: LayoutDashboard, label: 'Dashboard',      href: '/dashboard' },
-    { icon: FolderKanban,    label: 'My Projects',    href: '/projects' },
-    { icon: Camera,          label: 'Submissions',    href: '/submissions' },
-    { icon: Upload,          label: 'New Submission', href: '/submissions/new' },
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+    { icon: FolderKanban, label: 'My Projects', href: '/projects' },
+    { icon: Camera, label: 'Submissions', href: '/submissions' },
+    { icon: Upload, label: 'New Submission', href: '/submissions/new' },
   ],
 }
 
@@ -60,8 +60,8 @@ export default function Sidebar({ user }: { user: any }) {
             className={cn(
               'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors',
               isActive
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-gray-700 hover:bg-gray-50'
+                ? 'bg-primary/10 text-primary font-semibold shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             )}
           >
             <Icon className="h-5 w-5 shrink-0" />
@@ -75,14 +75,14 @@ export default function Sidebar({ user }: { user: any }) {
   return (
     <>
       {/* ── Desktop sidebar ───────────────────────────────────────────────── */}
-      <aside className="hidden lg:block fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 z-30">
+      <aside className="hidden lg:block fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-slate-200 shadow-sm z-30">
         <NavLinks />
       </aside>
 
       {/* ── Mobile hamburger button (shown in navbar area) ────────────────── */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-3.5 left-4 z-50 flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
+        className="lg:hidden fixed top-3.5 left-4 z-50 flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
         aria-label="Open menu"
       >
         <Menu className="h-5 w-5" />
@@ -105,16 +105,16 @@ export default function Sidebar({ user }: { user: any }) {
         )}
       >
         {/* Drawer header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-9 items-center justify-center rounded-lg bg-blue-600">
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4">
+          <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
+            <div className="flex h-8 w-9 items-center justify-center rounded-lg bg-primary shadow-sm">
               <span className="text-sm font-bold text-white">GMS</span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900">Project Monitor</p>
-              <p className="text-xs capitalize text-gray-500">{role}</p>
+              <p className="text-sm font-semibold text-slate-800">Monitoring System</p>
+              <p className="text-xs capitalize text-slate-500">{role}</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={() => setMobileOpen(false)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"

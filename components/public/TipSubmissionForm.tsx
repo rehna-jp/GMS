@@ -16,13 +16,13 @@ interface Project {
 }
 
 const CATEGORIES = [
-  { value: 'corruption',     label: '💰 Corruption' },
-  { value: 'poor_quality',   label: '🔨 Poor Quality Work' },
-  { value: 'abandonment',    label: '🚫 Project Abandonment' },
-  { value: 'safety_hazard',  label: '⚠️ Safety Hazard' },
+  { value: 'corruption', label: '💰 Corruption' },
+  { value: 'poor_quality', label: '🔨 Poor Quality Work' },
+  { value: 'abandonment', label: '🚫 Project Abandonment' },
+  { value: 'safety_hazard', label: '⚠️ Safety Hazard' },
   { value: 'wrong_location', label: '📍 Wrong Location' },
-  { value: 'overpricing',    label: '💸 Overpricing' },
-  { value: 'other',          label: '📝 Other' },
+  { value: 'overpricing', label: '💸 Overpricing' },
+  { value: 'other', label: '📝 Other' },
 ]
 
 export default function TipSubmissionForm() {
@@ -176,12 +176,12 @@ export default function TipSubmissionForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Category */}
           <div className="space-y-2">
-            <Label htmlFor="category">Category <span className="text-red-500">*</span></Label>
+            <Label htmlFor="category" className="text-slate-700">Category <span className="text-red-500">*</span></Label>
             <select
               id="category"
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
               required
             >
               <option value="">Select a category…</option>
@@ -193,14 +193,14 @@ export default function TipSubmissionForm() {
 
           {/* Project */}
           <div className="space-y-2">
-            <Label htmlFor="project">
-              Related Project <span className="text-gray-400 font-normal">(optional)</span>
+            <Label htmlFor="project" className="text-slate-700">
+              Related Project <span className="text-slate-400 font-normal">(optional)</span>
             </Label>
             <select
               id="project"
               value={projectId}
               onChange={e => setProjectId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
             >
               <option value="">Select a project…</option>
               {projects.map(p => (
@@ -213,7 +213,7 @@ export default function TipSubmissionForm() {
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">
+            <Label htmlFor="description" className="text-slate-700">
               Description <span className="text-red-500">*</span>
             </Label>
             <Textarea
@@ -221,15 +221,16 @@ export default function TipSubmissionForm() {
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="Please describe your concern in detail — what you saw, when, and where…"
+              className="focus:ring-primary/50 focus:border-primary/50"
               rows={6}
               required
             />
           </div>
 
           {/* Privacy notice */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-900">
-              <strong>Your Privacy:</strong> This form does not collect any personal
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+            <p className="text-sm text-primary">
+              <strong className="font-semibold">Your Privacy:</strong> This form does not collect any personal
               information. Your submission is completely anonymous.
               You will receive a reference number to track this concern.
             </p>
@@ -242,7 +243,7 @@ export default function TipSubmissionForm() {
             </p>
           )}
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 transition-colors" disabled={loading}>
             {loading ? 'Submitting…' : 'Submit Anonymous Tip'}
           </Button>
         </form>

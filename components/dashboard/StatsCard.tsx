@@ -29,8 +29,8 @@ export function StatsCard({
 
   return (
     <div className={`
-      relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm
-      transition-all hover:shadow-md
+      relative overflow-hidden rounded-2xl border bg-white/70 backdrop-blur-sm p-5 shadow-sm
+      transition-all hover:shadow-md hover:border-slate-300
       ${urgent ? 'border-red-200 ring-1 ring-red-100' : 'border-slate-200'}
     `}>
       {urgent && (

@@ -10,7 +10,7 @@ interface PageProps {
 }
 
 export default async function SubmissionsPage({ searchParams }: PageProps) {
-  const { status, submitted , queued} = await searchParams
+  const { status, submitted, queued } = await searchParams
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -25,11 +25,11 @@ export default async function SubmissionsPage({ searchParams }: PageProps) {
   const isContractor = profile?.role === 'contractor'
 
   const STATUS_TABS = [
-    { key: 'all',          label: 'All' },
-    { key: 'pending',      label: 'Pending' },
+    { key: 'all', label: 'All' },
+    { key: 'pending', label: 'Pending' },
     { key: 'under_review', label: 'Under Review' },
-    { key: 'approved',     label: 'Approved' },
-    { key: 'flagged',      label: 'Flagged' },
+    { key: 'approved', label: 'Approved' },
+    { key: 'flagged', label: 'Flagged' },
   ]
 
   return (
@@ -41,35 +41,41 @@ export default async function SubmissionsPage({ searchParams }: PageProps) {
         </div>
       )}
       {/* ADD THIS RIGHT HERE */}
-{queued === 'true' && (
-  <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
-    📶 Photos saved offline. They will upload automatically when network returns.
-  </div>
-)}
-
-      {/* Header */}
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Submissions</h1>
-          <p className="mt-1 text-slate-500">
-            {isContractor
-              ? 'Your progress photo submissions and their review status.'
-              : 'All contractor submissions requiring review.'}
-          </p>
+      {queued === 'true' && (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          📶 Photos saved offline. They will upload automatically when network returns.
         </div>
-        {isContractor && (
-          <Link
-            href="/submissions/new"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4" />
-            New Submission
-          </Link>
-        )}
+      )}
+
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-blue-800 px-6 py-8 text-white shadow-lg mb-6">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+        />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-blue-200 uppercase tracking-wider mb-1">Review Portal</p>
+            <h1 className="text-2xl font-bold">Submissions</h1>
+            <p className="mt-1 text-blue-200 text-sm">
+              {isContractor
+                ? 'Your progress photo submissions and their review status.'
+                : 'All contractor submissions requiring review.'}
+            </p>
+          </div>
+          {isContractor && (
+            <Link
+              href="/submissions/new"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-white/15 backdrop-blur-sm border border-white/25 px-4 py-2 text-sm font-semibold text-white hover:bg-white/25 shadow-sm transition-all"
+            >
+              <Plus className="h-4 w-4" />
+              New Submission
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Status filter tabs */}
-      <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-1">
+      <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm p-1 custom-scrollbar">
         {STATUS_TABS.map(tab => {
           const active = (status ?? 'all') === tab.key
           const count = tab.key === 'all'
@@ -83,15 +89,14 @@ export default async function SubmissionsPage({ searchParams }: PageProps) {
               className={`
                 flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all
                 ${active
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'}
+                  ? 'bg-primary/10 text-primary font-semibold shadow-sm'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}
               `}
             >
               {tab.label}
               {count > 0 && (
-                <span className={`rounded-full px-1.5 py-0.5 text-xs ${
-                  active ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500'
-                }`}>
+                <span className={`rounded-full px-1.5 py-0.5 text-xs ${active ? 'bg-primary text-white shadow-sm font-bold' : 'bg-slate-100 text-slate-600'
+                  }`}>
                   {count}
                 </span>
               )}
@@ -106,7 +111,7 @@ export default async function SubmissionsPage({ searchParams }: PageProps) {
           Failed to load submissions: {error}
         </div>
       ) : !submissions || submissions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 py-16 text-center bg-white shadow-sm">
           <Inbox className="mb-3 h-10 w-10 text-slate-300" />
           <p className="font-medium text-slate-600">No submissions yet</p>
           <p className="mt-1 text-sm text-slate-400">
@@ -115,7 +120,7 @@ export default async function SubmissionsPage({ searchParams }: PageProps) {
           {isContractor && (
             <Link
               href="/submissions/new"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 shadow-sm transition-colors"
             >
               <Plus className="h-4 w-4" />
               New Submission
@@ -123,7 +128,7 @@ export default async function SubmissionsPage({ searchParams }: PageProps) {
           )}
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {submissions.map(sub => (
             <SubmissionCard key={sub.id} submission={sub} />
           ))}

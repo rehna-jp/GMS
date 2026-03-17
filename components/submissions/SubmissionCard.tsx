@@ -13,10 +13,10 @@ interface SubmissionCardProps {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
-  pending:      { label: 'Pending',      classes: 'bg-blue-100 text-blue-800 border-blue-200' },
+  pending: { label: 'Pending', classes: 'bg-blue-100 text-blue-800 border-blue-200' },
   under_review: { label: 'Under Review', classes: 'bg-amber-100 text-amber-800 border-amber-200' },
-  approved:     { label: 'Approved',     classes: 'bg-green-100 text-green-800 border-green-200' },
-  flagged:      { label: 'Flagged',      classes: 'bg-red-100 text-red-800 border-red-200' },
+  approved: { label: 'Approved', classes: 'bg-green-100 text-green-800 border-green-200' },
+  flagged: { label: 'Flagged', classes: 'bg-red-100 text-red-800 border-red-200' },
 }
 
 export function SubmissionCard({ submission }: SubmissionCardProps) {
@@ -33,17 +33,17 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
     ? closestPhoto.distance_from_site! < 100
       ? 'verified'
       : closestPhoto.distance_from_site! <= 500
-      ? 'review'
-      : 'flagged'
+        ? 'review'
+        : 'flagged'
     : null
 
   return (
     <Link href={`/submissions/${submission.id}`} className="group block">
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-slate-300 hover:shadow-md">
+      <div className="rounded-xl border border-slate-100 bg-white/80 p-4 shadow-sm backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-md hover:bg-white">
         {/* Header row */}
         <div className="mb-3 flex items-start justify-between gap-2">
           <div>
-            <p className="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">
+            <p className="font-semibold text-slate-800 group-hover:text-primary transition-colors">
               {submission.submission_number}
             </p>
             <p className="mt-0.5 text-sm text-slate-500 line-clamp-1">
@@ -54,7 +54,7 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
             <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${status.classes}`}>
               {status.label}
             </span>
-            <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
+            <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-primary/70 transition-colors" />
           </div>
         </div>
 
@@ -87,7 +87,7 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
             </div>
             <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
               <div
-                className="h-full rounded-full bg-blue-500 transition-all"
+                className="h-full rounded-full bg-primary transition-all"
                 style={{ width: `${submission.completion_percentage}%` }}
               />
             </div>

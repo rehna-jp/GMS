@@ -18,14 +18,14 @@ interface PageProps {
 }
 
 const ROLE_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  admin:      { label: 'Admin',      icon: Shield,    color: 'text-purple-600 bg-purple-50 border-purple-200' },
-  official:   { label: 'Official',   icon: UserCheck, color: 'text-blue-600 bg-blue-50 border-blue-200' },
-  contractor: { label: 'Contractor', icon: HardHat,   color: 'text-amber-600 bg-amber-50 border-amber-200' },
+  admin: { label: 'Admin', icon: Shield, color: 'text-purple-600 bg-purple-50 border-purple-200' },
+  official: { label: 'Official', icon: UserCheck, color: 'text-blue-600 bg-blue-50 border-blue-200' },
+  contractor: { label: 'Contractor', icon: HardHat, color: 'text-amber-600 bg-amber-50 border-amber-200' },
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  active:    { label: 'Active',    color: 'text-green-700 bg-green-50 border-green-200' },
-  inactive:  { label: 'Inactive',  color: 'text-slate-600 bg-slate-50 border-slate-200' },
+  active: { label: 'Active', color: 'text-green-700 bg-green-50 border-green-200' },
+  inactive: { label: 'Inactive', color: 'text-slate-600 bg-slate-50 border-slate-200' },
   suspended: { label: 'Suspended', color: 'text-red-700 bg-red-50 border-red-200' },
 }
 
@@ -48,38 +48,44 @@ export default async function UsersPage({ searchParams }: PageProps) {
   ])
 
   const ROLE_TABS = [
-    { key: 'all',        label: 'All',         count: stats.total },
-    { key: 'admin',      label: 'Admins',      count: stats.admins },
-    { key: 'official',   label: 'Officials',   count: stats.officials },
+    { key: 'all', label: 'All', count: stats.total },
+    { key: 'admin', label: 'Admins', count: stats.admins },
+    { key: 'official', label: 'Officials', count: stats.officials },
     { key: 'contractor', label: 'Contractors', count: stats.contractors },
   ]
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* Header */}
-      <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">User Management</h1>
-          <p className="mt-1 text-slate-500">
-            Manage system users — activate, suspend, and monitor accounts
-          </p>
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-blue-800 px-6 py-8 text-white shadow-lg mb-8">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+        />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-blue-200 uppercase tracking-wider mb-1">Administration</p>
+            <h1 className="text-2xl font-bold">User Management</h1>
+            <p className="mt-1 text-blue-200 text-sm">
+              Manage system users — activate, suspend, and monitor accounts
+            </p>
+          </div>
+          <Link
+            href="/register"
+            className="inline-flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/25 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/25 shadow-sm transition-all"
+          >
+            <Plus className="h-4 w-4" />
+            Create User
+          </Link>
         </div>
-        <Link
-          href="/register"
-          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4" />
-          Create User
-        </Link>
       </div>
 
       {/* Stats row */}
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: 'Total Users',  value: stats.total,     icon: Users,     bg: 'bg-slate-50',   color: 'text-slate-600' },
-          { label: 'Active',       value: stats.active,    icon: CheckCircle2, bg: 'bg-green-50', color: 'text-green-600' },
-          { label: 'Suspended',    value: stats.suspended, icon: XCircle,   bg: 'bg-red-50',     color: 'text-red-600' },
-          { label: 'Contractors',  value: stats.contractors, icon: HardHat, bg: 'bg-amber-50',   color: 'text-amber-600' },
+          { label: 'Total Users', value: stats.total, icon: Users, bg: 'bg-slate-50', color: 'text-slate-600' },
+          { label: 'Active', value: stats.active, icon: CheckCircle2, bg: 'bg-green-50', color: 'text-green-600' },
+          { label: 'Suspended', value: stats.suspended, icon: XCircle, bg: 'bg-red-50', color: 'text-red-600' },
+          { label: 'Contractors', value: stats.contractors, icon: HardHat, bg: 'bg-amber-50', color: 'text-amber-600' },
         ].map(stat => {
           const Icon = stat.icon
           return (
@@ -112,9 +118,8 @@ export default async function UsersPage({ searchParams }: PageProps) {
               `}
             >
               {tab.label}
-              <span className={`rounded-full px-1.5 py-0.5 text-xs ${
-                active ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500'
-              }`}>
+              <span className={`rounded-full px-1.5 py-0.5 text-xs ${active ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500'
+                }`}>
                 {tab.count}
               </span>
             </Link>

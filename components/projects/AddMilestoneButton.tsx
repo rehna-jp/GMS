@@ -33,7 +33,7 @@ export default function AddMilestoneButton({ projectId }: { projectId: string })
 
     try {
       const result = await createMilestone(projectId, formData)
-      
+
       if (result?.error) {
         setError(result.error)
       } else {
@@ -147,7 +147,7 @@ export default function AddMilestoneButton({ projectId }: { projectId: string })
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="submit" disabled={loading} className="flex-1">
+            <Button type="submit" disabled={loading} className="flex-1 shadow-sm">
               {loading ? 'Creating...' : 'Create Milestone'}
             </Button>
             <Button
@@ -155,6 +155,7 @@ export default function AddMilestoneButton({ projectId }: { projectId: string })
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={loading}
+              className="hover:bg-slate-50 hover:text-slate-900 border-slate-200"
             >
               Cancel
             </Button>

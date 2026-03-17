@@ -3,17 +3,24 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   MapPin, Calendar, DollarSign, User, Edit,
-  TrendingUp, CheckCircle, Clock
+  TrendingUp, CheckCircle, Clock, Building2, ChevronLeft
 } from 'lucide-react'
 import MilestonesList from '@/components/projects/MilestonesList'
 import AddMilestoneButton from '@/components/projects/AddMilestoneButton'
 
-export const dynamic = 'force-dynamic' // Always fetch fresh data
+export const dynamic = 'force-dynamic'
+
+const STATUS_BADGE: Record<string, string> = {
+  active: 'bg-green-100 text-green-700 border-green-200',
+  delayed: 'bg-red-100 text-red-700 border-red-200',
+  completed: 'bg-primary/10 text-primary border-primary/20',
+  flagged: 'bg-red-100 text-red-700 border-red-200',
+  planning: 'bg-slate-100 text-slate-600 border-slate-200',
+}
 
 export default async function ProjectDetailPage({
   params
@@ -24,7 +31,6 @@ export default async function ProjectDetailPage({
   const user = await getCurrentUser()
   const supabase = await createClient()
 
-  // Fetch project with related data
   const { data: project, error } = await supabase
     .from('projects')
     .select(`
@@ -38,20 +44,17 @@ export default async function ProjectDetailPage({
 
   if (error || !project) notFound()
 
-  // Fetch submissions count (total)
   const { count: submissionsCount } = await supabase
     .from('submissions')
     .select('*', { count: 'exact', head: true })
     .eq('project_id', id)
 
-  // Fetch submission counts per milestone
   const { data: milestoneSubmissions } = await supabase
     .from('submissions')
     .select('milestone_id')
     .eq('project_id', id)
     .not('milestone_id', 'is', null)
 
-  // Count submissions per milestone_id
   const submissionCountMap: Record<string, number> = {}
   milestoneSubmissions?.forEach(s => {
     if (s.milestone_id) {
@@ -59,7 +62,6 @@ export default async function ProjectDetailPage({
     }
   })
 
-  // Attach submission_count to each milestone
   const milestonesWithCounts = (project.milestones ?? []).map((m: any) => ({
     ...m,
     submission_count: submissionCountMap[m.id] ?? 0,
@@ -68,243 +70,236 @@ export default async function ProjectDetailPage({
   const canEdit = ['admin', 'official'].includes(user?.profile?.role || '')
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-                <Badge
-                  variant={
-                    project.status === 'active' ? 'default' :
-                    project.status === 'delayed' ? 'destructive' :
-                    project.status === 'completed' ? 'default' :
-                    'secondary'
-                  }
-                >
-                  {project.status}
-                </Badge>
-              </div>
-              <p className="text-gray-600">{project.project_number}</p>
+    <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
+      {/* Back link */}
+      <Link
+        href="/projects"
+        className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        Back to Projects
+      </Link>
+
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-blue-800 px-6 py-8 text-white shadow-lg">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+        />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-blue-200 uppercase tracking-wider mb-2">
+              {project.project_type} · {project.project_number}
+            </p>
+            <div className="flex flex-wrap items-center gap-3 mb-2">
+              <h1 className="text-2xl font-bold">{project.name}</h1>
+              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[project.status] ?? STATUS_BADGE.planning}`}>
+                {project.status}
+              </span>
             </div>
-            {canEdit && (
-              <Link href={`/projects/${project.id}/edit`}>
-                <Button size="lg">
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Project
-                </Button>
-              </Link>
-            )}
+            <div className="flex items-center gap-1.5 text-blue-200 text-sm">
+              <MapPin className="h-3.5 w-3.5" />
+              {project.location_region}{project.location_district ? `, ${project.location_district}` : ''}
+            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Progress
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{project.completion_percentage}%</div>
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all"
-                style={{ width: `${project.completion_percentage}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Budget
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              GH₵ {Number(project.budget_total ?? 0).toLocaleString()}
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Spent: GH₵ {Number(project.budget_spent ?? 0).toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Milestones
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{project.milestones?.length || 0}</div>
-            <p className="text-xs text-gray-500 mt-1">
-              {project.milestones?.filter((m: any) => m.status === 'approved').length || 0} approved
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Submissions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{submissionsCount || 0}</div>
-            <p className="text-xs text-gray-500 mt-1">Total updates</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left Column */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Description */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Description</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 whitespace-pre-wrap">
-                {project.description || 'No description provided.'}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Milestones */}
-          <Card>
-            <CardHeader>
-              <div className="flex flex-row items-center justify-between">
-                <CardTitle>Milestones ({project.milestones?.length || 0})</CardTitle>
-                {canEdit && <AddMilestoneButton projectId={project.id} />}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <MilestonesList milestones={milestonesWithCounts} />
-            </CardContent>
-          </Card>
+          {canEdit && (
+            <Link href={`/projects/${project.id}/edit`}>
+              <Button className="bg-white/15 backdrop-blur-sm border border-white/25 text-white hover:bg-white/25 shadow-sm">
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Project
+              </Button>
+            </Link>
+          )}
         </div>
 
-        {/* Right Column */}
-        <div className="space-y-6">
-          {/* Location */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Location</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-start gap-2">
-                <MapPin className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium">{project.location_region}</p>
-                  <p className="text-sm text-gray-600">{project.location_district}</p>
+        {/* Progress bar inside hero */}
+        <div className="relative mt-6">
+          <div className="flex items-center justify-between mb-1.5 text-sm">
+            <span className="text-blue-200">Overall Progress</span>
+            <span className="font-bold">{project.completion_percentage}%</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-white/20">
+            <div
+              className="h-full rounded-full bg-white/80 transition-all"
+              style={{ width: `${project.completion_percentage}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {[
+          {
+            label: 'Budget Total',
+            value: `GH₵ ${Number(project.budget_total ?? 0).toLocaleString()}`,
+            sub: `Spent: GH₵ ${Number(project.budget_spent ?? 0).toLocaleString()}`,
+            icon: DollarSign, bg: 'bg-primary/10', color: 'text-primary',
+          },
+          {
+            label: 'Milestones',
+            value: project.milestones?.length ?? 0,
+            sub: `${project.milestones?.filter((m: any) => m.status === 'approved').length ?? 0} approved`,
+            icon: CheckCircle, bg: 'bg-green-50', color: 'text-green-600',
+          },
+          {
+            label: 'Submissions',
+            value: submissionsCount ?? 0,
+            sub: 'Total updates',
+            icon: Building2, bg: 'bg-amber-50', color: 'text-amber-600',
+          },
+          {
+            label: 'Timeline',
+            value: new Date(project.end_date).toLocaleDateString('en-GH', { month: 'short', year: 'numeric' }),
+            sub: `Started ${new Date(project.start_date).toLocaleDateString('en-GH', { month: 'short', year: 'numeric' })}`,
+            icon: Calendar, bg: 'bg-slate-100', color: 'text-slate-600',
+          },
+        ].map(stat => {
+          const Icon = stat.icon
+          return (
+            <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-400">{stat.label}</p>
+                  <p className="mt-1.5 text-xl font-bold text-slate-900 truncate">{stat.value}</p>
+                  <p className="mt-0.5 text-xs text-slate-500 truncate">{stat.sub}</p>
+                </div>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${stat.bg}`}>
+                  <Icon className={`h-5 w-5 ${stat.color}`} />
                 </div>
               </div>
-              <div className="text-sm text-gray-600 pl-7">
-                <p className="font-mono text-xs">
-                  {project.gps_latitude}, {project.gps_longitude}
-                </p>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Main content */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Left column */}
+        <div className="lg:col-span-2 space-y-6">
+
+          {/* Description */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-3 font-semibold text-slate-900">Project Description</h2>
+            <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+              {project.description || 'No description provided.'}
+            </p>
+          </div>
+
+          {/* Milestones */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold text-slate-900">
+                  Milestones
+                  <span className="ml-2 text-sm font-normal text-slate-400">({project.milestones?.length || 0})</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">Project deliverables and phases</p>
               </div>
-              <div className="pl-7">
-                <a
-                  href={`https://www.google.com/maps?q=${project.gps_latitude},${project.gps_longitude}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                >
-                  <MapPin className="h-3 w-3" />
-                  View on Google Maps
-                </a>
+              {canEdit && <AddMilestoneButton projectId={project.id} />}
+            </div>
+            <MilestonesList milestones={milestonesWithCounts} />
+          </div>
+        </div>
+
+        {/* Right column */}
+        <div className="space-y-5">
+
+          {/* Location */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-4 font-semibold text-slate-900">Location</h2>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                  <MapPin className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium text-slate-800">{project.location_region}</p>
+                  <p className="text-sm text-slate-500">{project.location_district}</p>
+                  <p className="mt-1 font-mono text-xs text-slate-400">
+                    {project.gps_latitude}, {project.gps_longitude}
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+              <a
+                href={`https://www.google.com/maps?q=${project.gps_latitude},${project.gps_longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+              >
+                <MapPin className="h-3 w-3" />
+                View on Google Maps
+              </a>
+            </div>
+          </div>
 
           {/* Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Timeline</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-start gap-2">
-                <Calendar className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-4 font-semibold text-slate-900">Timeline</h2>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
+                  <Calendar className="h-4 w-4 text-green-600" />
+                </div>
                 <div>
-                  <p className="text-sm text-gray-600">Start Date</p>
-                  <p className="font-medium">
-                    {new Date(project.start_date).toLocaleDateString('en-GH', {
-                      year: 'numeric', month: 'long', day: 'numeric'
-                    })}
+                  <p className="text-xs text-slate-400">Start Date</p>
+                  <p className="font-medium text-slate-800">
+                    {new Date(project.start_date).toLocaleDateString('en-GH', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-2">
-                <Calendar className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
+                  <Clock className="h-4 w-4 text-amber-600" />
+                </div>
                 <div>
-                  <p className="text-sm text-gray-600">End Date</p>
-                  <p className="font-medium">
-                    {new Date(project.end_date).toLocaleDateString('en-GH', {
-                      year: 'numeric', month: 'long', day: 'numeric'
-                    })}
+                  <p className="text-xs text-slate-400">End Date</p>
+                  <p className="font-medium text-slate-800">
+                    {new Date(project.end_date).toLocaleDateString('en-GH', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Team */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Team</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-4 font-semibold text-slate-900">Team</h2>
+            <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Primary Official</p>
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                  <p className="font-medium">{project.official?.full_name || 'Not assigned'}</p>
+                <p className="text-xs text-slate-400 mb-2">Primary Official</p>
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    {project.official?.full_name?.charAt(0) ?? '?'}
+                  </div>
+                  <p className="text-sm font-medium text-slate-800">{project.official?.full_name || 'Not assigned'}</p>
                 </div>
               </div>
               {project.contractor ? (
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Contractor</p>
-                  <div className="flex items-start gap-2">
-                    <User className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-slate-400 mb-2">Contractor</p>
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-50 text-xs font-bold text-amber-600">
+                      {project.contractor.full_name?.charAt(0) ?? '?'}
+                    </div>
                     <div>
-                      <p className="font-medium">{project.contractor.full_name}</p>
-                      <p className="text-xs text-gray-500">{project.contractor.email}</p>
+                      <p className="text-sm font-medium text-slate-800">{project.contractor.full_name}</p>
+                      <p className="text-xs text-slate-400">{project.contractor.email}</p>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-gray-500 italic">
-                  No contractor assigned yet
-                </div>
+                <p className="text-sm text-slate-400 italic">No contractor assigned yet</p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Project Type */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Project Type</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Badge variant="outline" className="text-sm">
-                {project.project_type}
-              </Badge>
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-3 font-semibold text-slate-900">Project Type</h2>
+            <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+              {project.project_type}
+            </span>
+          </div>
         </div>
       </div>
     </div>

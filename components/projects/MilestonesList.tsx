@@ -15,11 +15,11 @@ interface Milestone {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
-  pending:      { label: 'Pending',      classes: 'bg-slate-100 text-slate-600 border-slate-200' },
-  in_progress:  { label: 'In Progress',  classes: 'bg-blue-100 text-blue-700 border-blue-200' },
+  pending: { label: 'Pending', classes: 'bg-slate-100 text-slate-600 border-slate-200' },
+  in_progress: { label: 'In Progress', classes: 'bg-blue-100 text-blue-700 border-blue-200' },
   under_review: { label: 'Under Review', classes: 'bg-amber-100 text-amber-700 border-amber-200' },
-  approved:     { label: 'Approved',     classes: 'bg-green-100 text-green-700 border-green-200' },
-  flagged:      { label: 'Flagged',      classes: 'bg-red-100 text-red-700 border-red-200' },
+  approved: { label: 'Approved', classes: 'bg-green-100 text-green-700 border-green-200' },
+  flagged: { label: 'Flagged', classes: 'bg-red-100 text-red-700 border-red-200' },
 }
 
 export default function MilestonesList({ milestones }: { milestones: Milestone[] }) {
@@ -44,18 +44,16 @@ export default function MilestonesList({ milestones }: { milestones: Milestone[]
         return (
           <div
             key={milestone.id}
-            className={`border rounded-xl p-4 transition-colors hover:bg-gray-50 ${
-              isOverdue ? 'border-red-200 bg-red-50/30' : 'border-slate-200'
-            }`}
+            className={`border rounded-xl p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${isOverdue ? 'border-red-200 bg-red-50/50 hover:bg-red-50' : 'border-slate-200 bg-white/50 hover:bg-white hover:border-primary/20'
+              }`}
           >
             {/* Header */}
             <div className="flex items-start justify-between mb-3 gap-3">
               <div className="flex items-start gap-3">
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm shrink-0 ${
-                  milestone.status === 'approved'
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm shrink-0 shadow-sm ${milestone.status === 'approved'
                     ? 'bg-green-100 text-green-700'
-                    : 'bg-blue-100 text-blue-600'
-                }`}>
+                    : 'bg-primary/10 text-primary'
+                  }`}>
                   {milestone.status === 'approved'
                     ? <CheckCircle className="h-4 w-4" />
                     : index + 1
@@ -91,11 +89,10 @@ export default function MilestonesList({ milestones }: { milestones: Milestone[]
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className={`h-2 rounded-full transition-all ${
-                    milestone.completion_percentage >= 100 ? 'bg-green-500' :
-                    milestone.completion_percentage > 0 ? 'bg-blue-500' :
-                    'bg-gray-300'
-                  }`}
+                  className={`h-2 rounded-full transition-all ${milestone.completion_percentage >= 100 ? 'bg-green-500' :
+                      milestone.completion_percentage > 0 ? 'bg-blue-500' :
+                        'bg-gray-300'
+                    }`}
                   style={{ width: `${milestone.completion_percentage}%` }}
                 />
               </div>

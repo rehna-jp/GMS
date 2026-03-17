@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { AlertCircle } from 'lucide-react'
 
 const GHANA_REGIONS = [
-  'Greater Accra', 'Ashanti', 'Western', 'Eastern', 'Central', 
+  'Greater Accra', 'Ashanti', 'Western', 'Eastern', 'Central',
   'Northern', 'Upper East', 'Upper West', 'Volta', 'Bono',
   'Bono East', 'Ahafo', 'Savannah', 'North East', 'Oti', 'Western North'
 ]
@@ -49,7 +49,7 @@ export default function ProjectForm({ contractors, initialData, projectId }: Pro
 
     try {
       const result = await createProject(formData)
-      
+
       if (result?.error) {
         setError(result.error)
         setLoading(false)
@@ -77,8 +77,8 @@ export default function ProjectForm({ contractors, initialData, projectId }: Pro
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-            
+            <h3 className="text-lg font-semibold text-slate-800">Basic Information</h3>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="name">Project Name *</Label>
@@ -143,8 +143,8 @@ export default function ProjectForm({ contractors, initialData, projectId }: Pro
 
           {/* Location */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Location</h3>
-            
+            <h3 className="text-lg font-semibold text-slate-800">Location</h3>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="location_region">Region *</Label>
@@ -209,8 +209,8 @@ export default function ProjectForm({ contractors, initialData, projectId }: Pro
 
           {/* Budget & Timeline */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Budget & Timeline</h3>
-            
+            <h3 className="text-lg font-semibold text-slate-800">Budget & Timeline</h3>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="budget_total">Total Budget (GH₵) *</Label>

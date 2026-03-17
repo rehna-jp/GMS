@@ -20,39 +20,39 @@ const ACTIONS: {
   classes: string
   activeClasses: string
 }[] = [
-  {
-    key: 'under_review',
-    label: 'Mark Under Review',
-    description: 'Acknowledge receipt and begin reviewing',
-    icon: Eye,
-    classes: 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100',
-    activeClasses: 'border-blue-500 bg-blue-600 text-white shadow-md',
-  },
-  {
-    key: 'approve',
-    label: 'Approve',
-    description: 'Work is satisfactory and GPS verified',
-    icon: CheckCircle2,
-    classes: 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100',
-    activeClasses: 'border-green-600 bg-green-600 text-white shadow-md',
-  },
-  {
-    key: 'request_changes',
-    label: 'Request Changes',
-    description: 'Photos need clarification or more evidence',
-    icon: MessageSquare,
-    classes: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
-    activeClasses: 'border-amber-500 bg-amber-500 text-white shadow-md',
-  },
-  {
-    key: 'flag',
-    label: 'Flag as Fraud',
-    description: 'GPS mismatch or suspicious activity detected',
-    icon: XCircle,
-    classes: 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
-    activeClasses: 'border-red-600 bg-red-600 text-white shadow-md',
-  },
-]
+    {
+      key: 'under_review',
+      label: 'Mark Under Review',
+      description: 'Acknowledge receipt and begin reviewing',
+      icon: Eye,
+      classes: 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-primary/5 hover:border-primary/30 hover:text-primary',
+      activeClasses: 'border-primary bg-primary text-white shadow-md',
+    },
+    {
+      key: 'approve',
+      label: 'Approve',
+      description: 'Work is satisfactory and GPS verified',
+      icon: CheckCircle2,
+      classes: 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100',
+      activeClasses: 'border-green-600 bg-green-600 text-white shadow-md',
+    },
+    {
+      key: 'request_changes',
+      label: 'Request Changes',
+      description: 'Photos need clarification or more evidence',
+      icon: MessageSquare,
+      classes: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
+      activeClasses: 'border-amber-500 bg-amber-500 text-white shadow-md',
+    },
+    {
+      key: 'flag',
+      label: 'Flag as Fraud',
+      description: 'GPS mismatch or suspicious activity detected',
+      icon: XCircle,
+      classes: 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
+      activeClasses: 'border-red-600 bg-red-600 text-white shadow-md',
+    },
+  ]
 
 const TERMINAL_STATUSES = ['approved', 'flagged']
 
@@ -64,41 +64,41 @@ export function ReviewPanel({
 }: ReviewPanelProps) {
   const [selectedAction, setSelectedAction] = useState<ReviewAction | null>(null)
   const [comment, setComment] = useState('')
-const [isPending, setIsPending] = useState(false)
+  const [isPending, setIsPending] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
 
   const isTerminal = TERMINAL_STATUSES.includes(currentStatus)
 
   const handleSubmit = async () => {
-  if (!selectedAction) return
-  setError('')
-  setIsPending(true)
+    if (!selectedAction) return
+    setError('')
+    setIsPending(true)
 
-  try {
-    const result = await reviewSubmission({
-      submissionId,
-      action: selectedAction,
-      comment,
-    })
+    try {
+      const result = await reviewSubmission({
+        submissionId,
+        action: selectedAction,
+        comment,
+      })
 
-    console.log('Review result:', result)
+      console.log('Review result:', result)
 
-    if (result.error) {
-      setError(result.error)
-      return
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+
+      setSubmitted(true)
+      onReviewed?.(result.newStatus ?? selectedAction)
+
+    } catch (err) {
+      console.error('Review error:', err)
+      setError('An unexpected error occurred.')
+    } finally {
+      setIsPending(false)
     }
-
-    setSubmitted(true)
-    onReviewed?.(result.newStatus ?? selectedAction)
-    
-  } catch (err) {
-    console.error('Review error:', err)
-    setError('An unexpected error occurred.')
-  } finally {
-    setIsPending(false)
   }
-}
 
   if (submitted) {
     const action = ACTIONS.find(a => a.key === selectedAction)
@@ -199,10 +199,10 @@ const [isPending, setIsPending] = useState(false)
               selectedAction === 'approve'
                 ? 'Great work — all milestones met…'
                 : selectedAction === 'flag'
-                ? 'Describe the suspicious activity or GPS mismatch…'
-                : selectedAction === 'request_changes'
-                ? 'Please provide photos of the north façade…'
-                : 'Add review notes…'
+                  ? 'Describe the suspicious activity or GPS mismatch…'
+                  : selectedAction === 'request_changes'
+                    ? 'Please provide photos of the north façade…'
+                    : 'Add review notes…'
             }
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
@@ -221,9 +221,9 @@ const [isPending, setIsPending] = useState(false)
           disabled={
             !selectedAction ||
             isPending ||
-            (( selectedAction === 'flag' || selectedAction === 'request_changes') && !comment.trim())
+            ((selectedAction === 'flag' || selectedAction === 'request_changes') && !comment.trim())
           }
-          className="w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isPending ? (
             <span className="flex items-center justify-center gap-2">

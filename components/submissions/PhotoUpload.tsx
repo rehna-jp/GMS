@@ -224,7 +224,7 @@ export function PhotoUpload({
       {photos.length < maxPhotos && (
         <div className="space-y-2">
           {/* Camera button — opens rear camera directly on mobile */}
-          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95">
+          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 active:scale-95">
             <Camera className="h-5 w-5" />
             {processing ? 'Processing…' : 'Take Photo'}
             <input
@@ -243,7 +243,7 @@ export function PhotoUpload({
               flex cursor-pointer flex-col items-center justify-center
               rounded-xl border-2 border-dashed p-5 text-center transition-all
               ${isDragOver
-                ? 'border-blue-400 bg-blue-50'
+                ? 'border-primary bg-primary/10'
                 : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100'
               }
             `}
@@ -309,9 +309,9 @@ export function PhotoUpload({
           {photos.map((photo, index) => (
             <div
               key={index}
-              className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+              className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm hover:border-primary/20 transition-colors"
             >
-              <div className="relative aspect-video w-full bg-slate-100">
+              <div className="relative aspect-video w-full bg-slate-50">
                 <img
                   src={photo.preview}
                   alt={photo.file.name}

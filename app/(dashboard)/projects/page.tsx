@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, MapPin, Calendar, DollarSign } from 'lucide-react'
+import { Plus, MapPin, Calendar, DollarSign, FolderKanban } from 'lucide-react'
 
 export default async function ProjectsPage() {
   const user = await getCurrentUser()
@@ -32,75 +32,40 @@ export default async function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-          <p className="text-gray-600 mt-1">
-            {user?.profile?.role === 'contractor' 
-              ? 'Your assigned projects' 
-              : 'All infrastructure projects'}
-          </p>
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-blue-800 px-6 py-8 text-white shadow-lg">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+        />
+        <div className="relative flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-blue-200 uppercase tracking-wider mb-1">Infrastructure</p>
+            <h1 className="text-2xl font-bold">Projects</h1>
+            <p className="mt-1 text-blue-200 text-sm">
+              {user?.profile?.role === 'contractor'
+                ? 'Your assigned projects'
+                : 'All infrastructure projects'}
+            </p>
+          </div>
+          {canCreateProject && (
+            <Link href="/projects/new">
+              <Button className="bg-white/15 backdrop-blur-sm border border-white/25 text-white hover:bg-white/25 shadow-sm">
+                <Plus className="mr-2 h-4 w-4" />
+                New Project
+              </Button>
+            </Link>
+          )}
         </div>
-        {canCreateProject && (
-          <Link href="/projects/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Project
-            </Button>
-          </Link>
-        )}
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Total Projects
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-500">Total Projects</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{projects?.length || 0}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Active
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {projects?.filter(p => p.status === 'active').length || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Delayed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {projects?.filter(p => p.status === 'delayed').length || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Completed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {projects?.filter(p => p.status === 'completed').length || 0}
-            </div>
+            <div className="text-3xl font-bold text-primary">{projects?.length || 0}</div>
           </CardContent>
         </Card>
       </div>
@@ -109,52 +74,55 @@ export default async function ProjectsPage() {
       {projects && projects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project: any) => (
-            <Card key={project.id} className="hover:shadow-lg transition-shadow">
+            <Card key={project.id} className="hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 transition-all duration-200 border-slate-200 shadow-sm">
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">{project.name}</CardTitle>
-                    <p className="text-sm text-gray-600">{project.project_number}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-lg mb-1 truncate text-slate-800">{project.name}</CardTitle>
+                    <p className="text-sm text-slate-500 truncate">{project.project_number}</p>
                   </div>
                   <Badge
                     variant={
                       project.status === 'active' ? 'default' :
-                      project.status === 'delayed' ? 'destructive' :
-                      project.status === 'flagged' ? 'destructive' :
-                      project.status === 'completed' ? 'default' :
-                      'secondary'
+                        project.status === 'delayed' ? 'destructive' :
+                          project.status === 'flagged' ? 'destructive' :
+                            project.status === 'completed' ? 'default' :
+                              'secondary'
                     }
+                    className="shrink-0"
                   >
                     {project.status}
                   </Badge>
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-3">
-                <div className="flex items-center text-sm text-gray-600">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  {project.location_region}, {project.location_district}
-                </div>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm text-slate-600">
+                    <MapPin className="h-4 w-4 mr-2 text-slate-400 shrink-0" />
+                    <span className="truncate">{project.location_region}, {project.location_district}</span>
+                  </div>
 
-                <div className="flex items-center text-sm text-gray-600">
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Budget: GH₵ {(project.budget_total / 1000000).toFixed(2)}M
-                </div>
+                  <div className="flex items-center text-sm text-slate-600">
+                    <DollarSign className="h-4 w-4 mr-2 text-slate-400 shrink-0" />
+                    <span className="truncate">Budget: GH₵ {(project.budget_total / 1000000).toFixed(2)}M</span>
+                  </div>
 
-                <div className="flex items-center text-sm text-gray-600">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  {new Date(project.start_date).toLocaleDateString()}
+                  <div className="flex items-center text-sm text-slate-600">
+                    <Calendar className="h-4 w-4 mr-2 text-slate-400 shrink-0" />
+                    <span>{new Date(project.start_date).toLocaleDateString()}</span>
+                  </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Progress</span>
-                    <span className="font-medium">{project.completion_percentage}%</span>
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="text-slate-500 font-medium">Progress</span>
+                    <span className="font-bold text-slate-700">{project.completion_percentage}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                     <div
-                      className="bg-blue-600 h-2 rounded-full transition-all"
+                      className="bg-primary h-full rounded-full transition-all duration-500"
                       style={{ width: `${project.completion_percentage}%` }}
                     />
                   </div>
@@ -162,8 +130,8 @@ export default async function ProjectsPage() {
 
                 {/* Contractor */}
                 {project.contractor && (
-                  <div className="text-sm text-gray-600">
-                    <span className="font-medium">Contractor:</span> {project.contractor.full_name}
+                  <div className="text-sm text-slate-600 truncate">
+                    <span className="font-medium text-slate-700">Contractor:</span> {project.contractor.full_name}
                   </div>
                 )}
 

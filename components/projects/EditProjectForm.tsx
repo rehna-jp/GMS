@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 
 const GHANA_REGIONS = [
-  'Greater Accra', 'Ashanti', 'Western', 'Eastern', 'Central', 
+  'Greater Accra', 'Ashanti', 'Western', 'Eastern', 'Central',
   'Northern', 'Upper East', 'Upper West', 'Volta', 'Bono',
   'Bono East', 'Ahafo', 'Savannah', 'North East', 'Oti', 'Western North'
 ]
@@ -58,7 +58,7 @@ export default function EditProjectForm({ project, contractors }: EditProjectFor
 
     try {
       const result = await updateProject(project.id, formData)
-      
+
       if (result?.error) {
         setError(result.error)
       } else {
@@ -99,8 +99,8 @@ export default function EditProjectForm({ project, contractors }: EditProjectFor
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-            
+            <h3 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2">Basic Information</h3>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="name">Project Name *</Label>
@@ -132,7 +132,7 @@ export default function EditProjectForm({ project, contractors }: EditProjectFor
                   required
                   disabled={loading}
                   defaultValue={project.project_type}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                 >
                   {PROJECT_TYPES.map(type => (
                     <option key={type} value={type}>{type}</option>
@@ -148,7 +148,7 @@ export default function EditProjectForm({ project, contractors }: EditProjectFor
                   required
                   disabled={loading}
                   defaultValue={project.status}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                 >
                   {PROJECT_STATUSES.map(status => (
                     <option key={status} value={status}>
@@ -165,7 +165,7 @@ export default function EditProjectForm({ project, contractors }: EditProjectFor
                   name="contractor_id"
                   disabled={loading}
                   defaultValue={project.contractor_id || ''}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                 >
                   <option value="">No contractor assigned</option>
                   {contractors.map(contractor => (
@@ -180,8 +180,8 @@ export default function EditProjectForm({ project, contractors }: EditProjectFor
 
           {/* Location */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Location</h3>
-            
+            <h3 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2 mt-6">Location</h3>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="location_region">Region *</Label>
@@ -191,7 +191,7 @@ export default function EditProjectForm({ project, contractors }: EditProjectFor
                   required
                   disabled={loading}
                   defaultValue={project.location_region}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                 >
                   {GHANA_REGIONS.map(region => (
                     <option key={region} value={region}>{region}</option>
@@ -240,8 +240,8 @@ export default function EditProjectForm({ project, contractors }: EditProjectFor
 
           {/* Budget & Timeline */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Budget & Timeline</h3>
-            
+            <h3 className="text-lg font-semibold text-slate-800 border-b border-slate-100 pb-2 mt-6">Budget & Timeline</h3>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="budget_total">Total Budget (GH₵) *</Label>
