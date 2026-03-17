@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: [
         'localhost:3000',
-        '*.app.github.dev', // GitHub Codespaces
+        '*.app.github.dev',
+        'vercel', 
       ],
     },
   },
